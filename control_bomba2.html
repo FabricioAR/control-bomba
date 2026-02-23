@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encendido de Bomba</title>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<style>
+
+body{
+  font-family: Arial;
+  text-align:center;
+  background:#1e1e1e;
+  color:white;
+}
+
+h1{
+  margin-top:40px;
+}
+
+button{
+  font-size:20px;
+  padding:15px 30px;
+  margin:20px;
+  border:none;
+  border-radius:10px;
+}
+
+.on{
+  background:green;
+  color:white;
+}
+
+.off{
+  background:red;
+  color:white;
+}
+
+.status{
+  font-size:22px;
+  margin-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Encendido de Bomba</h1>
+
+<button class="on" onclick="encender()">Encender</button>
+<button class="off" onclick="apagar()">Apagar</button>
+
+<div class="status" id="estado">Estado: Desconectado</div>
+
+<script>
+
+// CONFIGURACION MQTT
+
+const options = {
+  username: "esp32",
+  password: "Loquesea123"
+};
+
+const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq.cloud:8884/mqtt", options);
+
+client.on("connect", function () {
+
+  document.getElementById("estado").innerHTML = "Estado: Conectado MQTT";
+
+  client.subscribe("bomba/estado");
+
+});
+
+client.on("message", function(topic, message){
+
+  if(topic == "bomba/estado"){
+    document.getElementById("estado").innerHTML = "Estado: " + message.toString();
+  }
+
+});
+
+function encender(){
+  client.publish("bomba/control","ON");
+}
+
+function apagar(){
+  client.publish("bomba/control","OFF");
+}
+
+</script>
+
+</body>
+</html>
