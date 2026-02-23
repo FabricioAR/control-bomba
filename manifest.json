@@ -1,10 +1,10 @@
 {
-  "name": "Encendido de Bomba",
+  "name": "Control de Bomba",
   "short_name": "Bomba",
-  "start_url": "/",
+  "start_url": "/control-bomba/",
   "display": "standalone",
-  "background_color": "#1e1e1e",
-  "theme_color": "#1e1e1e",
+  "background_color": "#121212",
+  "theme_color": "#121212",
   "icons": [
     {
       "src": "icon.png",
