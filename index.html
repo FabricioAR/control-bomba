@@ -1,45 +1,79 @@
 <!DOCTYPE html>
-<html>
-<link rel="manifest" href="manifest.json">
+<html lang="es">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Encendido de Bomba</title>
+
+<title>Control de Bomba</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#1e1e1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <style>
 
 body{
-  font-family: Arial;
-  text-align:center;
-  background:#1e1e1e;
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#121212;
   color:white;
+  text-align:center;
 }
 
 h1{
   margin-top:40px;
 }
 
+.container{
+  margin-top:40px;
+}
+
 button{
-  font-size:20px;
-  padding:15px 30px;
-  margin:20px;
+  width:200px;
+  padding:15px;
+  font-size:18px;
+  margin:15px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:0.3s;
 }
 
 .on{
-  background:green;
+  background:#00c853;
   color:white;
 }
 
 .off{
-  background:red;
+  background:#d50000;
   color:white;
 }
 
+button:active{
+  transform:scale(0.95);
+}
+
 .status{
-  font-size:22px;
-  margin-top:20px;
+  margin-top:30px;
+  font-size:20px;
+}
+
+.indicator{
+  margin:20px auto;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:red;
+  transition:0.3s;
+}
+
+.connected{
+  background:#00c853;
 }
 
 </style>
@@ -47,36 +81,63 @@ button{
 
 <body>
 
-<h1>Encendido de Bomba</h1>
+<h1>Control de Bomba</h1>
 
-<button class="on" onclick="encender()">Encender</button>
-<button class="off" onclick="apagar()">Apagar</button>
+<div class="indicator" id="led"></div>
 
-<div class="status" id="estado">Estado: Desconectado</div>
+<div class="container">
+  <button class="on" onclick="encender()">Encender</button>
+  <button class="off" onclick="apagar()">Apagar</button>
+</div>
+
+<div class="status" id="estado">Desconectado</div>
 
 <script>
 
-// CONFIGURACION MQTT
-
+// 🔐 CONFIGURA AQUI
 const options = {
   username: "esp32",
-  password: "Loquesea123"
+  password: "Loquesea123",
+  reconnectPeriod: 2000
 };
 
+// IMPORTANTE: reemplaza TU_HOST por tu servidor HiveMQ
 const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq.cloud:8884/mqtt", options);
+
+const estadoTexto = document.getElementById("estado");
+const led = document.getElementById("led");
 
 client.on("connect", function () {
 
-  document.getElementById("estado").innerHTML = "Estado: Conectado MQTT";
+  estadoTexto.innerHTML = "Conectado a MQTT";
+  led.classList.add("connected");
 
   client.subscribe("bomba/estado");
 
 });
 
+client.on("reconnect", function () {
+  estadoTexto.innerHTML = "Reconectando...";
+  led.classList.remove("connected");
+});
+
+client.on("error", function () {
+  estadoTexto.innerHTML = "Error de conexión";
+  led.classList.remove("connected");
+});
+
 client.on("message", function(topic, message){
 
-  if(topic == "bomba/estado"){
-    document.getElementById("estado").innerHTML = "Estado: " + message.toString();
+  if(topic === "bomba/estado"){
+    const estado = message.toString();
+
+    estadoTexto.innerHTML = "Bomba: " + estado;
+
+    if(estado === "ON"){
+      led.style.background = "#00c853";
+    } else {
+      led.style.background = "#d50000";
+    }
   }
 
 });
@@ -93,3 +154,5 @@ function apagar(){
 
 </body>
 </html>
+
+
