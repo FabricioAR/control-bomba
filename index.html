@@ -6,7 +6,6 @@
 <title>Control Bomba</title>
 
 <link rel="manifest" href="manifest.json">
-
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <style>
@@ -22,27 +21,25 @@ body {
 }
 
 .card {
-  width: 350px;
+  width: 380px;
   padding: 30px;
   border-radius: 20px;
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
 h1 {
   margin-top: 0;
   font-size: 22px;
-  font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 18px 0;
-  font-size: 16px;
+  margin: 15px 0;
 }
 
 .status {
@@ -56,22 +53,32 @@ h1 {
   height: 14px;
   border-radius: 50%;
   background: red;
-  box-shadow: 0 0 8px red;
+  box-shadow: 0 0 10px red;
   transition: 0.3s;
 }
 
 .green {
   background: #00ff88;
-  box-shadow: 0 0 10px #00ff88;
+  box-shadow: 0 0 15px #00ff88;
 }
 
 .red {
   background: #ff3b3b;
-  box-shadow: 0 0 10px #ff3b3b;
+  box-shadow: 0 0 15px #ff3b3b;
+}
+
+.pulse {
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 .buttons {
-  margin-top: 25px;
+  margin-top: 20px;
   display: flex;
   justify-content: space-between;
 }
@@ -100,13 +107,28 @@ button {
 button:hover {
   transform: scale(1.05);
 }
+
+.latency {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.log {
+  margin-top: 20px;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 12px;
+  background: rgba(0,0,0,0.3);
+  padding: 10px;
+  border-radius: 10px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h1>Panel de Control</h1>
+  <h1>⚙ Panel de Control Bomba</h1>
 
   <div class="row">
     <div>Conectado a MQTT</div>
@@ -122,10 +144,17 @@ button:hover {
     </div>
   </div>
 
+  <div class="row latency">
+    <div>Latencia MQTT:</div>
+    <div><span id="latencyValue">--</span> ms</div>
+  </div>
+
   <div class="buttons">
     <button class="on" onclick="encender()">Encender</button>
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
+
+  <div class="log" id="log"></div>
 
 </div>
 
@@ -141,42 +170,55 @@ const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq
 const mqttLed = document.getElementById("mqttLed");
 const bombaLed = document.getElementById("bombaLed");
 const bombaEstado = document.getElementById("bombaEstado");
+const logDiv = document.getElementById("log");
+const latencyValue = document.getElementById("latencyValue");
+
+let pingTime;
+
+function log(text) {
+  const time = new Date().toLocaleTimeString();
+  logDiv.innerHTML = "[" + time + "] " + text + "<br>" + logDiv.innerHTML;
+}
 
 client.on("connect", function () {
   mqttLed.classList.remove("red");
   mqttLed.classList.add("green");
   client.subscribe("bomba/estado");
-});
-
-client.on("reconnect", function () {
-  mqttLed.classList.remove("green");
-  mqttLed.classList.add("red");
+  log("Conectado a MQTT");
 });
 
 client.on("close", function () {
   mqttLed.classList.remove("green");
   mqttLed.classList.add("red");
+  log("Desconectado del broker");
 });
 
 client.on("message", function (topic, message) {
   const estado = message.toString().trim().toUpperCase();
 
+  const latency = Date.now() - pingTime;
+  latencyValue.innerText = latency;
+
   if (estado === "ON") {
     bombaLed.classList.remove("red");
-    bombaLed.classList.add("green");
+    bombaLed.classList.add("green", "pulse");
     bombaEstado.innerText = "ON";
+    log("Bomba ENCENDIDA");
   } else {
-    bombaLed.classList.remove("green");
+    bombaLed.classList.remove("green", "pulse");
     bombaLed.classList.add("red");
     bombaEstado.innerText = "OFF";
+    log("Bomba APAGADA");
   }
 });
 
 function encender() {
+  pingTime = Date.now();
   client.publish("bomba/control", "ON");
 }
 
 function apagar() {
+  pingTime = Date.now();
   client.publish("bomba/control", "OFF");
 }
 </script>
