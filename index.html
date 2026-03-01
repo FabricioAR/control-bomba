@@ -7,6 +7,7 @@
 
 <link rel="manifest" href="manifest.json">
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
@@ -21,31 +22,41 @@ body {
 }
 
 .card {
-  width: 380px;
-  padding: 30px;
+  width: 400px;
+  padding: 25px;
   border-radius: 20px;
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(18px);
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.datetime {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
 h1 {
-  margin-top: 0;
-  font-size: 22px;
-  opacity: 0.85;
+  margin: 5px 0 15px 0;
+  font-size: 20px;
+  opacity: 0.9;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 15px 0;
+  margin: 10px 0;
 }
 
-.status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.subtext {
+  font-size: 12px;
+  opacity: 0.7;
 }
 
 .led {
@@ -78,7 +89,7 @@ h1 {
 }
 
 .buttons {
-  margin-top: 20px;
+  margin-top: 15px;
   display: flex;
   justify-content: space-between;
 }
@@ -86,41 +97,24 @@ h1 {
 button {
   flex: 1;
   margin: 5px;
-  padding: 12px;
+  padding: 10px;
   border-radius: 12px;
   border: none;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.on {
-  background: #00c853;
-  color: white;
-}
+.on { background: #00c853; color: white; }
+.off { background: #d50000; color: white; }
 
-.off {
-  background: #d50000;
-  color: white;
-}
+button:hover { transform: scale(1.05); }
 
-button:hover {
-  transform: scale(1.05);
-}
-
-.latency {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-.log {
-  margin-top: 20px;
-  max-height: 100px;
-  overflow-y: auto;
-  font-size: 12px;
+canvas {
+  margin-top: 15px;
   background: rgba(0,0,0,0.3);
-  padding: 10px;
   border-radius: 10px;
+  padding: 5px;
 }
 </style>
 </head>
@@ -128,25 +122,27 @@ button:hover {
 <body>
 
 <div class="card">
+
+  <div class="topbar">
+    <div class="datetime" id="datetime"></div>
+  </div>
+
   <h1>⚙ Panel de Control Bomba</h1>
 
   <div class="row">
-    <div>Conectado a MQTT</div>
-    <div class="status">
-      <div id="mqttLed" class="led red"></div>
+    <div>
+      Conectado a MQTT
+      <div class="subtext">Latencia: <span id="latencyValue">--</span> ms</div>
     </div>
+    <div id="mqttLed" class="led red"></div>
   </div>
 
   <div class="row">
-    <div>Control bomba: <span id="bombaEstado">OFF</span></div>
-    <div class="status">
-      <div id="bombaLed" class="led red"></div>
+    <div>
+      Control bomba: <span id="bombaEstado">OFF</span>
+      <div class="subtext">Tiempo encendida: <span id="onTime">00:00:00</span></div>
     </div>
-  </div>
-
-  <div class="row latency">
-    <div>Latencia MQTT:</div>
-    <div><span id="latencyValue">--</span> ms</div>
+    <div id="bombaLed" class="led red"></div>
   </div>
 
   <div class="buttons">
@@ -154,7 +150,7 @@ button:hover {
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
 
-  <div class="log" id="log"></div>
+  <canvas id="estadoChart" height="120"></canvas>
 
 </div>
 
@@ -170,45 +166,85 @@ const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq
 const mqttLed = document.getElementById("mqttLed");
 const bombaLed = document.getElementById("bombaLed");
 const bombaEstado = document.getElementById("bombaEstado");
-const logDiv = document.getElementById("log");
 const latencyValue = document.getElementById("latencyValue");
+const onTimeDisplay = document.getElementById("onTime");
 
 let pingTime;
+let startOnTime = null;
 
-function log(text) {
-  const time = new Date().toLocaleTimeString();
-  logDiv.innerHTML = "[" + time + "] " + text + "<br>" + logDiv.innerHTML;
+function updateClock() {
+  const now = new Date();
+  document.getElementById("datetime").innerText =
+    now.toLocaleDateString() + " " + now.toLocaleTimeString();
 }
+setInterval(updateClock, 1000);
+updateClock();
+
+function updateOnTime() {
+  if (startOnTime) {
+    const diff = Math.floor((Date.now() - startOnTime) / 1000);
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    onTimeDisplay.innerText = `${h}:${m}:${s}`;
+  }
+}
+setInterval(updateOnTime, 1000);
+
+const ctx = document.getElementById('estadoChart').getContext('2d');
+const estadoChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Estado Bomba (1=ON, 0=OFF)',
+      data: [],
+      borderColor: '#00ff88',
+      tension: 0.1
+    }]
+  },
+  options: {
+    scales: {
+      y: { min: 0, max: 1 }
+    }
+  }
+});
 
 client.on("connect", function () {
   mqttLed.classList.remove("red");
   mqttLed.classList.add("green");
   client.subscribe("bomba/estado");
-  log("Conectado a MQTT");
 });
 
 client.on("close", function () {
   mqttLed.classList.remove("green");
   mqttLed.classList.add("red");
-  log("Desconectado del broker");
 });
 
 client.on("message", function (topic, message) {
   const estado = message.toString().trim().toUpperCase();
+  latencyValue.innerText = Date.now() - pingTime;
 
-  const latency = Date.now() - pingTime;
-  latencyValue.innerText = latency;
+  const now = new Date().toLocaleTimeString();
+  estadoChart.data.labels.push(now);
+  estadoChart.data.datasets[0].data.push(estado === "ON" ? 1 : 0);
+  if (estadoChart.data.labels.length > 20) {
+    estadoChart.data.labels.shift();
+    estadoChart.data.datasets[0].data.shift();
+  }
+  estadoChart.update();
 
   if (estado === "ON") {
     bombaLed.classList.remove("red");
     bombaLed.classList.add("green", "pulse");
     bombaEstado.innerText = "ON";
-    log("Bomba ENCENDIDA");
+    if (!startOnTime) startOnTime = Date.now();
   } else {
     bombaLed.classList.remove("green", "pulse");
     bombaLed.classList.add("red");
     bombaEstado.innerText = "OFF";
-    log("Bomba APAGADA");
+    startOnTime = null;
+    onTimeDisplay.innerText = "00:00:00";
   }
 });
 
