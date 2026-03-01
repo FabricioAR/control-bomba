@@ -2,107 +2,134 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Control de Bomba</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Bomba</title>
 
 <link rel="manifest" href="manifest.json">
-
-<meta name="theme-color" content="#121212">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <style>
-
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#121212;
-  color:white;
-  text-align:center;
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at 20% 20%, #1e2a4a, #0b1220 70%);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
 }
 
-h1{
-  margin-top:40px;
+.card {
+  width: 350px;
+  padding: 30px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
 
-.status-row{
-  width:85%;
-  margin:15px auto;
-  padding:14px;
-  background:#1e1e1e;
-  border-radius:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:18px;
+h1 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
-.led{
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:red;
-  transition:0.3s;
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0;
+  font-size: 16px;
 }
 
-.container{
-  margin-top:40px;
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-button{
-  width:200px;
-  padding:15px;
-  font-size:18px;
-  margin:15px;
-  border:none;
-  border-radius:12px;
-  cursor:pointer;
-  transition:0.3s;
+.led {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: red;
+  box-shadow: 0 0 8px red;
+  transition: 0.3s;
 }
 
-.on{
-  background:#00c853;
-  color:white;
+.green {
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
 }
 
-.off{
-  background:#d50000;
-  color:white;
+.red {
+  background: #ff3b3b;
+  box-shadow: 0 0 10px #ff3b3b;
 }
 
-button:active{
-  transform:scale(0.95);
+.buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-between;
 }
 
+button {
+  flex: 1;
+  margin: 5px;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.on {
+  background: #00c853;
+  color: white;
+}
+
+.off {
+  background: #d50000;
+  color: white;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
 </style>
 </head>
 
 <body>
 
-<h1>Control de Bomba</h1>
+<div class="card">
+  <h1>Panel de Control</h1>
 
-<div class="status-row">
-  <span id="mqttText">Desconectado</span>
-  <div class="led" id="mqttLed"></div>
-</div>
+  <div class="row">
+    <div>Conectado a MQTT</div>
+    <div class="status">
+      <div id="mqttLed" class="led red"></div>
+    </div>
+  </div>
 
-<div class="status-row">
-  <span id="bombaText">Control bomba: OFF</span>
-  <div class="led" id="bombaLed"></div>
-</div>
+  <div class="row">
+    <div>Control bomba: <span id="bombaEstado">OFF</span></div>
+    <div class="status">
+      <div id="bombaLed" class="led red"></div>
+    </div>
+  </div>
 
-<div class="container">
-  <button class="on" onclick="encender()">Encender</button>
-  <button class="off" onclick="apagar()">Apagar</button>
+  <div class="buttons">
+    <button class="on" onclick="encender()">Encender</button>
+    <button class="off" onclick="apagar()">Apagar</button>
+  </div>
+
 </div>
 
 <script>
-
-// 🔐 Configuración MQTT
 const options = {
   username: "esp32",
   password: "Loquesea123",
@@ -111,60 +138,47 @@ const options = {
 
 const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq.cloud:8884/mqtt", options);
 
-const mqttText = document.getElementById("mqttText");
 const mqttLed = document.getElementById("mqttLed");
-
-const bombaText = document.getElementById("bombaText");
 const bombaLed = document.getElementById("bombaLed");
+const bombaEstado = document.getElementById("bombaEstado");
 
 client.on("connect", function () {
-
-  mqttText.innerHTML = "Conectado a MQTT";
-  mqttLed.style.background = "#00c853";
-
+  mqttLed.classList.remove("red");
+  mqttLed.classList.add("green");
   client.subscribe("bomba/estado");
-
 });
 
 client.on("reconnect", function () {
-  mqttText.innerHTML = "Reconectando...";
-  mqttLed.style.background = "red";
-});
-
-client.on("error", function () {
-  mqttText.innerHTML = "Error de conexión";
-  mqttLed.style.background = "red";
+  mqttLed.classList.remove("green");
+  mqttLed.classList.add("red");
 });
 
 client.on("close", function () {
-  mqttText.innerHTML = "Desconectado";
-  mqttLed.style.background = "red";
+  mqttLed.classList.remove("green");
+  mqttLed.classList.add("red");
 });
 
-client.on("message", function(topic, message){
+client.on("message", function (topic, message) {
+  const estado = message.toString().trim().toUpperCase();
 
-  if(topic === "bomba/estado"){
-    const estado = message.toString();
-
-    bombaText.innerHTML = "Control bomba: " + estado;
-
-    if(estado === "ON"){
-      bombaLed.style.background = "#00c853";
-    } else {
-      bombaLed.style.background = "red";
-    }
+  if (estado === "ON") {
+    bombaLed.classList.remove("red");
+    bombaLed.classList.add("green");
+    bombaEstado.innerText = "ON";
+  } else {
+    bombaLed.classList.remove("green");
+    bombaLed.classList.add("red");
+    bombaEstado.innerText = "OFF";
   }
-
 });
 
-function encender(){
-  client.publish("bomba/control","ON");
+function encender() {
+  client.publish("bomba/control", "ON");
 }
 
-function apagar(){
-  client.publish("bomba/control","OFF");
+function apagar() {
+  client.publish("bomba/control", "OFF");
 }
-
 </script>
 
 </body>
