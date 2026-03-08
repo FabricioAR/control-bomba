@@ -159,6 +159,7 @@ canvas {
 </div>
 
 <script>
+
 const options = {
   username: "esp32",
   password: "Loquesea123",
@@ -196,6 +197,7 @@ function updateOnTime() {
 setInterval(updateOnTime, 1000);
 
 const ctx = document.getElementById('estadoChart').getContext('2d');
+
 const estadoChart = new Chart(ctx, {
   type: 'line',
   data: {
@@ -215,56 +217,84 @@ const estadoChart = new Chart(ctx, {
 });
 
 client.on("connect", function () {
+
   mqttLed.classList.remove("red");
   mqttLed.classList.add("green");
-  client.subscribe("bomba/estado");
-  client.subscribe("bomba/rssi");
+
+  // Ahora solo escuchamos UN topic
+  client.subscribe("bomba/data");
+
 });
 
 client.on("close", function () {
+
   mqttLed.classList.remove("green");
   mqttLed.classList.add("red");
+
 });
 
 client.on("message", function (topic, message) {
-  const estado = message.toString().trim().toUpperCase();
+
   latencyValue.innerText = Date.now() - pingTime;
 
-  const now = new Date().toLocaleTimeString();
-  estadoChart.data.labels.push(now);
-  estadoChart.data.datasets[0].data.push(estado === "ON" ? 1 : 0);
-  if (estadoChart.data.labels.length > 20) {
-    estadoChart.data.labels.shift();
-    estadoChart.data.datasets[0].data.shift();
-  }
-  estadoChart.update();
+  if(topic === "bomba/data"){
 
-  if (estado === "ON") {
-    bombaLed.classList.remove("red");
-    bombaLed.classList.add("green", "pulse");
-    bombaEstado.innerText = "ON";
-    if (!startOnTime) startOnTime = Date.now();
-  } else {
-    bombaLed.classList.remove("green", "pulse");
-    bombaLed.classList.add("red");
-    bombaEstado.innerText = "OFF";
-    startOnTime = null;
-    onTimeDisplay.innerText = "00:00:00";
+    const data = JSON.parse(message.toString());
+
+    const estado = data.estado;
+    const rssi = data.rssi;
+
+    document.getElementById("rssiValue").innerText = rssi;
+
+    const now = new Date().toLocaleTimeString();
+
+    estadoChart.data.labels.push(now);
+    estadoChart.data.datasets[0].data.push(estado === "ON" ? 1 : 0);
+
+    if (estadoChart.data.labels.length > 20) {
+      estadoChart.data.labels.shift();
+      estadoChart.data.datasets[0].data.shift();
+    }
+
+    estadoChart.update();
+
+    if (estado === "ON") {
+
+      bombaLed.classList.remove("red");
+      bombaLed.classList.add("green", "pulse");
+      bombaEstado.innerText = "ON";
+
+      if (!startOnTime) startOnTime = Date.now();
+
+    } else {
+
+      bombaLed.classList.remove("green", "pulse");
+      bombaLed.classList.add("red");
+      bombaEstado.innerText = "OFF";
+
+      startOnTime = null;
+      onTimeDisplay.innerText = "00:00:00";
+
+    }
+
   }
-  if(topic === "bomba/rssi"){
-  document.getElementById("rssiValue").innerText = message.toString();
-  }
+
 });
 
 function encender() {
+
   pingTime = Date.now();
   client.publish("bomba/control", "ON");
+
 }
 
 function apagar() {
+
   pingTime = Date.now();
   client.publish("bomba/control", "OFF");
+
 }
+
 </script>
 
 </body>
