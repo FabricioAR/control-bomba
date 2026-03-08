@@ -116,6 +116,14 @@ canvas {
   border-radius: 10px;
   padding: 5px;
 }
+  
+#rssiBars{
+  font-size:16px;
+  margin-right:5px;
+  letter-spacing:2px;
+  color:#00ff88;
+}
+  
 </style>
 </head>
 
@@ -138,7 +146,9 @@ canvas {
   </div>
 
   <div class="subtext">
-    Señal LoRa: <span id="rssiValue">--</span> dBm
+   Señal LoRa: 
+    <span id="rssiBars">▱▱▱▱▱</span>
+    <span id="rssiValue">--</span> dBm
   </div>
 
   <div class="row">
@@ -294,8 +304,29 @@ function apagar() {
   client.publish("bomba/control", "OFF");
 
 }
+  
+function actualizarBarrasRSSI(rssi){
+
+  let bars = 1;
+
+  if(rssi > -70) bars = 5;
+  else if(rssi > -85) bars = 4;
+  else if(rssi > -100) bars = 3;
+  else if(rssi > -110) bars = 2;
+
+  let visual = "";
+
+  for(let i=0;i<5;i++){
+    visual += i < bars ? "▰" : "▱";
+  }
+
+  document.getElementById("rssiBars").innerText = visual;
+
+}
+  
 
 </script>
 
 </body>
 </html>
+
