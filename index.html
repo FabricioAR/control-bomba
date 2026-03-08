@@ -137,6 +137,10 @@ canvas {
     <div id="mqttLed" class="led red"></div>
   </div>
 
+  <div class="subtext">
+    Señal LoRa: <span id="rssiValue">--</span> dBm
+  </div>
+
   <div class="row">
     <div>
       Control bomba: <span id="bombaEstado">OFF</span>
@@ -214,6 +218,7 @@ client.on("connect", function () {
   mqttLed.classList.remove("red");
   mqttLed.classList.add("green");
   client.subscribe("bomba/estado");
+  client.subscribe("bomba/rssi");
 });
 
 client.on("close", function () {
@@ -245,6 +250,9 @@ client.on("message", function (topic, message) {
     bombaEstado.innerText = "OFF";
     startOnTime = null;
     onTimeDisplay.innerText = "00:00:00";
+  }
+  if(topic === "bomba/rssi"){
+  document.getElementById("rssiValue").innerText = message.toString();
   }
 });
 
