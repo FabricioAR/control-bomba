@@ -255,6 +255,7 @@ client.on("message", function (topic, message) {
     const rssi = data.rssi;
 
     document.getElementById("rssiValue").innerText = rssi;
+    actualizarBarrasRSSI(rssi);
 
     const now = new Date().toLocaleTimeString();
 
@@ -329,4 +330,5 @@ function actualizarBarrasRSSI(rssi){
 
 </body>
 </html>
+
 
