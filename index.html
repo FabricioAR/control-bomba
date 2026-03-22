@@ -249,7 +249,11 @@ client.on("close", function () {
 
 client.on("message", function (topic, message) {
 
-  latencyValue.innerText = Date.now() - pingTime;
+    if (pingTime) {
+    latencyValue.innerText = Date.now() - pingTime;
+  } else {
+    latencyValue.innerText = "--";
+  }
 
   if(topic === "bomba/data"){
 
