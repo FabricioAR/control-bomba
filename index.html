@@ -186,6 +186,7 @@ const onTimeDisplay = document.getElementById("onTime");
 
 let pingTime;
 let startOnTime = null;
+let inicioBomba = 0;
 
 function updateClock() {
   const now = new Date();
@@ -196,14 +197,17 @@ setInterval(updateClock, 1000);
 updateClock();
 
 function updateOnTime() {
-  if (startOnTime) {
-    const diff = Math.floor((Date.now() - startOnTime) / 1000);
+  if (inicioBomba > 0) {
+    const ahora = Math.floor(Date.now() / 1000);
+    const diff = ahora - inicioBomba;
     const h = String(Math.floor(diff / 3600)).padStart(2, '0');
     const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
     const s = String(diff % 60).padStart(2, '0');
+
     onTimeDisplay.innerText = `${h}:${m}:${s}`;
   }
 }
+  
 setInterval(updateOnTime, 1000);
 
 const ctx = document.getElementById('estadoChart').getContext('2d');
@@ -253,6 +257,10 @@ client.on("message", function (topic, message) {
 
     const estado = data.estado;
     const rssi = data.rssi;
+    const inicio = data.inicio;
+
+    // Guardar el timestamp de encendido
+    inicioBomba = inicio;
 
     document.getElementById("rssiValue").innerText = rssi;
     actualizarBarrasRSSI(rssi);
@@ -270,22 +278,22 @@ client.on("message", function (topic, message) {
     estadoChart.update();
 
     if (estado === "ON") {
-
+    
       bombaLed.classList.remove("red");
       bombaLed.classList.add("green", "pulse");
       bombaEstado.innerText = "ON";
-
-      if (!startOnTime) startOnTime = Date.now();
-
+    
     } else {
-
+    
       bombaLed.classList.remove("green", "pulse");
       bombaLed.classList.add("red");
       bombaEstado.innerText = "OFF";
-
-      startOnTime = null;
+    
+      // Reiniciar tiempo
+      inicioBomba = 0;
+    
       onTimeDisplay.innerText = "00:00:00";
-
+    
     }
 
   }
