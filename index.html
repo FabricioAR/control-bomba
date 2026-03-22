@@ -170,6 +170,11 @@ canvas {
 
 <script>
 
+// Pedir permiso al usuario y hacer notificaciones.
+if ("Notification" in window) {
+  Notification.requestPermission();
+}
+
 const options = {
   username: "esp32",
   password: "Loquesea123",
@@ -184,9 +189,13 @@ const bombaEstado = document.getElementById("bombaEstado");
 const latencyValue = document.getElementById("latencyValue");
 const onTimeDisplay = document.getElementById("onTime");
 
+ // Variables para guardar el tiempo de encendido de la bomba. 
 let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
+
+// Variable para evitar multiples notificaciones
+let ultimoEstadoNotificado = "";
 
 function updateClock() {
   const now = new Date();
@@ -286,8 +295,20 @@ client.on("message", function (topic, message) {
       bombaLed.classList.remove("red");
       bombaLed.classList.add("green", "pulse");
       bombaEstado.innerText = "ON";
+
+       // 🔔 Notificación solo si cambió el estado
+        if (ultimoEstadoNotificado !== "ON") {
+      
+          if (Notification.permission === "granted") {
+            new Notification("Bomba Encendida", {
+              body: "La bomba ha sido activada correctamente",
+              icon: "icon.png"
+            });
+          }
+          ultimoEstadoNotificado = "ON";
+        }
     
-    } else {
+  } else {
     
       bombaLed.classList.remove("green", "pulse");
       bombaLed.classList.add("red");
@@ -297,7 +318,8 @@ client.on("message", function (topic, message) {
       inicioBomba = 0;
     
       onTimeDisplay.innerText = "00:00:00";
-    
+      
+      ultimoEstadoNotificado = "OFF";    
     }
 
   }
