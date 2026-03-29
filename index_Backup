@@ -1,1 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Bomba</title>
+
+<link rel="manifest" href="manifest.json">
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at 20% 20%, #1e2a4a, #0b1220 70%);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.card {
+  width: 400px;
+  padding: 25px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.datetime {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+h1 {
+  margin: 5px 0 15px 0;
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.subtext {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.led {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: red;
+  box-shadow: 0 0 10px red;
+  transition: 0.3s;
+}
+
+.green {
+  background: #00ff88;
+  box-shadow: 0 0 15px #00ff88;
+}
+
+.red {
+  background: #ff3b3b;
+  box-shadow: 0 0 15px #ff3b3b;
+}
+
+.pulse {
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  flex: 1;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.on { background: #00c853; color: white; }
+.off { background: #d50000; color: white; }
+
+button:hover { transform: scale(1.05); }
+
+canvas {
+  margin-top: 15px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 5px;
+}
+  
+#rssiBars{
+  font-size:16px;
+  margin-right:5px;
+  letter-spacing:2px;
+  color:#00ff88;
+}
+  
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <div class="topbar">
+    <div class="datetime" id="datetime"></div>
+  </div>
+
+  <h1>⚙ Panel de Control Bomba</h1>
+
+  <div class="row">
+    <div>
+      Conectado a MQTT
+      <div class="subtext">Latencia: <span id="latencyValue">--</span> ms</div>
+    </div>
+    <div id="mqttLed" class="led red"></div>
+  </div>
+
+  <div class="subtext">
+   Señal LoRa: 
+    <span id="rssiBars">▱▱▱▱▱</span>
+    <span id="rssiValue">--</span> dBm
+  </div>
+
+  <div class="row">
+    <div>
+      Control bomba: <span id="bombaEstado">OFF</span>
+      <div class="subtext">Tiempo encendida: <span id="onTime">00:00:00</span></div>
+    </div>
+    <div id="bombaLed" class="led red"></div>
+  </div>
+
+  <div class="buttons">
+    <button class="on" onclick="encender()">Encender</button>
+    <button class="off" onclick="apagar()">Apagar</button>
+  </div>
+
+  <canvas id="estadoChart" height="120"></canvas>
+
+</div>
+
+<script>
+
+const options = {
+  username: "esp32",
+  password: "Loquesea123",
+  reconnectPeriod: 2000
+};
+
+const client = mqtt.connect("wss://4681e769df664e0daab26f3bdd7b3a70.s1.eu.hivemq.cloud:8884/mqtt", options);
+
+const mqttLed = document.getElementById("mqttLed");
+const bombaLed = document.getElementById("bombaLed");
+const bombaEstado = document.getElementById("bombaEstado");
+const latencyValue = document.getElementById("latencyValue");
+const onTimeDisplay = document.getElementById("onTime");
+
+ // Variables para guardar el tiempo de encendido de la bomba. 
+let pingTime;
+let startOnTime = null;
+let inicioBomba = 0;
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("datetime").innerText =
+    now.toLocaleDateString() + " " + now.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function updateOnTime() {
+  if (inicioBomba > 0) {
+    const ahora = Math.floor(Date.now() / 1000);
+    const diff = ahora - inicioBomba;
+    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+
+    onTimeDisplay.innerText = `${h}:${m}:${s}`;
+  }
+}
+  
+setInterval(updateOnTime, 1000);
+
+const ctx = document.getElementById('estadoChart').getContext('2d');
+
+const estadoChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Estado Bomba (1=ON, 0=OFF)',
+      data: [],
+      borderColor: '#00ff88',
+      tension: 0.1
+    }]
+  },
+  options: {
+    scales: {
+      y: { min: 0, max: 1 }
+    }
+  }
+});
+
+client.on("connect", function () {
+
+  mqttLed.classList.remove("red");
+  mqttLed.classList.add("green");
+
+  // Ahora solo escuchamos UN topic
+  client.subscribe("bomba/data");
+
+});
+
+client.on("close", function () {
+
+  mqttLed.classList.remove("green");
+  mqttLed.classList.add("red");
+
+});
+
+client.on("message", function (topic, message) {
+
+    if (pingTime) {
+    latencyValue.innerText = Date.now() - pingTime;
+  } else {
+    latencyValue.innerText = "--";
+  }
+
+  if(topic === "bomba/data"){
+
+    const data = JSON.parse(message.toString());
+
+    const estado = data.estado;
+    const rssi = data.rssi;
+    const inicio = data.inicio;
+
+    // Guardar el timestamp de encendido
+    inicioBomba = inicio;
+
+    document.getElementById("rssiValue").innerText = rssi;
+    actualizarBarrasRSSI(rssi);
+
+    const now = new Date().toLocaleTimeString();
+
+    estadoChart.data.labels.push(now);
+    estadoChart.data.datasets[0].data.push(estado === "ON" ? 1 : 0);
+
+    if (estadoChart.data.labels.length > 20) {
+      estadoChart.data.labels.shift();
+      estadoChart.data.datasets[0].data.shift();
+    }
+
+    estadoChart.update();
+
+    if (estado === "ON") {
+    
+      bombaLed.classList.remove("red");
+      bombaLed.classList.add("green", "pulse");
+      bombaEstado.innerText = "ON";
+  } else {
+      bombaLed.classList.remove("green", "pulse");
+      bombaLed.classList.add("red");
+      bombaEstado.innerText = "OFF";
+    
+      // Reiniciar tiempo
+      inicioBomba = 0;
+    
+      onTimeDisplay.innerText = "00:00:00"; 
+    }
+
+  }
+
+});
+
+function encender() {
+
+  pingTime = Date.now();
+  client.publish("bomba/control", "ON");
+
+}
+
+function apagar() {
+
+  pingTime = Date.now();
+  client.publish("bomba/control", "OFF");
+
+}
+  
+function actualizarBarrasRSSI(rssi){
+
+  let bars = 1;
+
+  if(rssi > -70) bars = 5;
+  else if(rssi > -85) bars = 4;
+  else if(rssi > -100) bars = 3;
+  else if(rssi > -110) bars = 2;
+
+  let visual = "";
+
+  for(let i=0;i<5;i++){
+    visual += i < bars ? "▰" : "▱";
+  }
+
+  document.getElementById("rssiBars").innerText = visual;
+
+}
+  
+
+</script>
+
+</body>
+</html>
+
 
