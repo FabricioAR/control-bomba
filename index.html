@@ -21,6 +21,13 @@ body {
   color: white;
 }
 
+  input {
+  padding: 5px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 5px;
+}
+
 .card {
   width: 400px;
   padding: 25px;
@@ -164,6 +171,22 @@ canvas {
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
 
+  <!-- AQUÍ VA EL HORARIO -->
+  <div class="row">
+  <div>
+    <div class="subtext">Hora Encendido</div>
+    <input type="time" id="horaOn">
+  </div>
+
+  <div>
+    <div class="subtext">Hora Apagado</div>
+    <input type="time" id="horaOff">
+  </div>
+</div>
+
+<button onclick="enviarHorario()">Guardar Horario</button>
+
+ <!-- GRÁFICA --> 
   <canvas id="estadoChart" height="120"></canvas>
 
 </div>
@@ -334,6 +357,27 @@ function actualizarBarrasRSSI(rssi){
   document.getElementById("rssiBars").innerText = visual;
 
 }
+
+  
+function enviarHorario() {
+  const horaOn = document.getElementById("horaOn").value;
+  const horaOff = document.getElementById("horaOff").value;
+  
+  if (!horaOn || !horaOff) {
+    alert("Seleccione ambas horas");
+    return;
+  }
+  
+  const data = {
+    on: horaOn,
+    off: horaOff
+  };
+  
+  const json = JSON.stringify(data);
+  client.publish("bomba/horario", json);
+  console.log("Horario enviado:", json);
+}
+  
   
 
 </script>
