@@ -171,6 +171,12 @@ canvas {
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
 
+  <!-- MODO AUTOMÁTICO -->
+<div class="buttons">
+  <button onclick="activarAuto()">Auto ON</button>
+  <button onclick="desactivarAuto()">Auto OFF</button>
+</div>
+
   <!-- AQUÍ VA EL HORARIO -->
   <div class="row">
   <div>
@@ -338,6 +344,17 @@ function apagar() {
   client.publish("bomba/control", "OFF");
 
 }
+
+function activarAuto() {
+  client.publish("bomba/modo", "AUTO_ON");
+  console.log("Modo automático activado");
+}
+
+function desactivarAuto() {
+  client.publish("bomba/modo", "AUTO_OFF");
+  console.log("Modo automático desactivado");
+}
+  
   
 function actualizarBarrasRSSI(rssi){
 
