@@ -130,19 +130,11 @@ canvas {
   letter-spacing:2px;
   color:#00ff88;
 }
-
-  /* BOTÓN MODO  */
-.auto {
-  background: #00c853;
-  color: white;
-}
-.manual {
-  background: #37474f;
-  color: white;
-}
   
   
 </style>
+
+  
 </head>
 
 <body>
@@ -182,11 +174,11 @@ canvas {
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
 
-  <!-- MODO AUTOMÁTICO -->
 <div class="buttons">
-  <button id="modoBtn" onclick="toggleModo()">Modo Automático</button>
+  <button onclick="activarAuto()">Auto ON</button>
+  <button onclick="desactivarAuto()">Auto OFF</button>
 </div>
-
+  
   <!-- AQUÍ VA EL HORARIO -->
   <div class="row">
   <div>
@@ -223,23 +215,13 @@ const bombaEstado = document.getElementById("bombaEstado");
 const latencyValue = document.getElementById("latencyValue");
 const onTimeDisplay = document.getElementById("onTime");
 
-
-// Para que el botón de auto y manual mantega su último estado despues de abrir la app de nuevo
-// Restaurar modo guardado
-let modoGuardado = localStorage.getItem("modoAutomatico");
-if (modoGuardado !== null) {
-  modoAutomatico = (modoGuardado === "true");
-}
-// actualizar botón al iniciar
-actualizarBotonModo();
   
 
  // Variables para guardar el tiempo de encendido de la bomba. 
 let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
- // Variable para el botón auto o manual.  
-let modoAutomatico = true;
+
 
 function updateClock() {
   const now = new Date();
@@ -419,32 +401,8 @@ function enviarHorario() {
 }
 
   
-function toggleModo() {
-
-modoAutomatico = !modoAutomatico;
-  if (modoAutomatico) {
-    client.publish("bomba/modo", "AUTO_ON");
-  } else {
-    client.publish("bomba/modo", "AUTO_OFF");
-  }
-  actualizarBotonModo();
-  // guardar estado
-  localStorage.setItem("modoAutomatico", modoAutomatico);
-}
 
   
-function actualizarBotonModo() {
-  const btn = document.getElementById("modoBtn");
-  if (modoAutomatico) {
-    btn.innerText = "Modo Automático";
-    btn.classList.remove("manual");
-    btn.classList.add("auto");
-  } else {
-    btn.innerText = "Modo Manual";
-    btn.classList.remove("auto");
-    btn.classList.add("manual");
-  }
-}
   
 
 </script>
