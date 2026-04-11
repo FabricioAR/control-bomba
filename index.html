@@ -221,8 +221,6 @@ const onTimeDisplay = document.getElementById("onTime");
 let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
-let esperandoRespuesta = false; // Variable para calcular bien la latencia cuando se utiliza el horario.
-let ultimoEstado = "";
 
 
 function updateClock() {
@@ -286,21 +284,11 @@ client.on("close", function () {
 
 client.on("message", function (topic, message) {
 
-  // Solo medir Latencia si hubo cambio real de estado
-if (estado !== ultimoEstado) {
-
-  // Si fue por botón
-  if (esperandoRespuesta) {
+    if (pingTime) {
     latencyValue.innerText = Date.now() - pingTime;
-    esperandoRespuesta = false;
-  } 
-  // Si fue automático
-  else {
-    latencyValue.innerText = "Auto";
+  } else {
+    latencyValue.innerText = "--";
   }
-
-  ultimoEstado = estado;
-}
 
   if(topic === "bomba/data"){
 
@@ -351,7 +339,6 @@ if (estado !== ultimoEstado) {
 function encender() {
 
   pingTime = Date.now();
-  esperandoRespuesta = true;
   client.publish("bomba/control", "ON");
 
 }
@@ -359,7 +346,6 @@ function encender() {
 function apagar() {
 
   pingTime = Date.now();
-  esperandoRespuesta = true;
   client.publish("bomba/control", "OFF");
 
 }
@@ -423,5 +409,3 @@ function enviarHorario() {
 
 </body>
 </html>
-
-
