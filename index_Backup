@@ -21,6 +21,13 @@ body {
   color: white;
 }
 
+  input {
+  padding: 5px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 5px;
+}
+
 .card {
   width: 400px;
   padding: 25px;
@@ -124,7 +131,10 @@ canvas {
   color:#00ff88;
 }
   
+  
 </style>
+
+  
 </head>
 
 <body>
@@ -164,6 +174,27 @@ canvas {
     <button class="off" onclick="apagar()">Apagar</button>
   </div>
 
+<div class="buttons">
+  <button onclick="activarAuto()">Auto ON</button>
+  <button onclick="desactivarAuto()">Auto OFF</button>
+</div>
+  
+  <!-- AQUÍ VA EL HORARIO -->
+  <div class="row">
+  <div>
+    <div class="subtext">Hora Encendido</div>
+    <input type="time" id="horaOn">
+  </div>
+
+  <div>
+    <div class="subtext">Hora Apagado</div>
+    <input type="time" id="horaOff">
+  </div>
+</div>
+
+<button onclick="enviarHorario()">Guardar Horario</button>
+
+ <!-- GRÁFICA --> 
   <canvas id="estadoChart" height="120"></canvas>
 
 </div>
@@ -184,10 +215,13 @@ const bombaEstado = document.getElementById("bombaEstado");
 const latencyValue = document.getElementById("latencyValue");
 const onTimeDisplay = document.getElementById("onTime");
 
+  
+
  // Variables para guardar el tiempo de encendido de la bomba. 
 let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
+
 
 function updateClock() {
   const now = new Date();
@@ -315,6 +349,17 @@ function apagar() {
   client.publish("bomba/control", "OFF");
 
 }
+
+function activarAuto() {
+  client.publish("bomba/modo", "AUTO_ON");
+  console.log("Modo automático activado");
+}
+
+function desactivarAuto() {
+  client.publish("bomba/modo", "AUTO_OFF");
+  console.log("Modo automático desactivado");
+}
+  
   
 function actualizarBarrasRSSI(rssi){
 
@@ -334,11 +379,34 @@ function actualizarBarrasRSSI(rssi){
   document.getElementById("rssiBars").innerText = visual;
 
 }
+
+  
+function enviarHorario() {
+  const horaOn = document.getElementById("horaOn").value;
+  const horaOff = document.getElementById("horaOff").value;
+  
+  if (!horaOn || !horaOff) {
+    alert("Seleccione ambas horas");
+    return;
+  }
+  
+  const data = {
+    on: horaOn,
+    off: horaOff
+  };
+  
+  const json = JSON.stringify(data);
+  client.publish("bomba/horario", json);
+  console.log("Horario enviado:", json);
+}
+
+  
+
+  
   
 
 </script>
 
 </body>
 </html>
-
 
