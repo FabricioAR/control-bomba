@@ -221,6 +221,7 @@ const onTimeDisplay = document.getElementById("onTime");
 let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
+let esperandoRespuesta = false; // Variable para calcular bien la latencia cuando se utiliza el horario.
 
 
 function updateClock() {
@@ -284,8 +285,9 @@ client.on("close", function () {
 
 client.on("message", function (topic, message) {
 
-    if (pingTime) {
+    if (esperandoRespuesta) {
     latencyValue.innerText = Date.now() - pingTime;
+    esperandoRespuesta = false;
   } else {
     latencyValue.innerText = "--";
   }
@@ -339,6 +341,7 @@ client.on("message", function (topic, message) {
 function encender() {
 
   pingTime = Date.now();
+  esperandoRespuesta = true;
   client.publish("bomba/control", "ON");
 
 }
@@ -346,6 +349,7 @@ function encender() {
 function apagar() {
 
   pingTime = Date.now();
+  esperandoRespuesta = true;
   client.publish("bomba/control", "OFF");
 
 }
