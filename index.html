@@ -233,6 +233,17 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// 🔄 Para restaurar horario guardado después de abrir de nuevo la app.
+const horaOnGuardada = localStorage.getItem("horaOn");
+const horaOffGuardada = localStorage.getItem("horaOff");
+if (horaOnGuardada) {
+  document.getElementById("horaOn").value = horaOnGuardada;
+}
+if (horaOffGuardada) {
+  document.getElementById("horaOff").value = horaOffGuardada;
+}
+  
+
 function updateOnTime() {
   if (inicioBomba > 0) {
     const ahora = Math.floor(Date.now() / 1000);
@@ -395,6 +406,10 @@ function actualizarBarrasRSSI(rssi){
 function enviarHorario() {
   const horaOn = document.getElementById("horaOn").value;
   const horaOff = document.getElementById("horaOff").value;
+  // 💾 Guardar horario en el navegador
+  localStorage.setItem("horaOn", horaOn);
+  localStorage.setItem("horaOff", horaOff);
+  
   
   if (!horaOn || !horaOff) {
     alert("Seleccione ambas horas");
