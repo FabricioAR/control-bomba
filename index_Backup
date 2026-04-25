@@ -222,6 +222,8 @@ let pingTime;
 let startOnTime = null;
 let inicioBomba = 0;
 
+let modoAutomaticoUI = true;
+
 
 function updateClock() {
   const now = new Date();
@@ -284,11 +286,18 @@ client.on("close", function () {
 
 client.on("message", function (topic, message) {
 
-    if (pingTime) {
+
+  if (modoAutomaticoUI) {
+  latencyValue.innerText = "Auto";
+} else {
+  if (pingTime) {
     latencyValue.innerText = Date.now() - pingTime;
   } else {
     latencyValue.innerText = "--";
   }
+}
+  
+    
 
   if(topic === "bomba/data"){
 
@@ -353,11 +362,13 @@ function apagar() {
 function activarAuto() {
   client.publish("bomba/modo", "AUTO_ON");
   console.log("Modo automático activado");
+  modoAutomaticoUI = true;
 }
 
 function desactivarAuto() {
   client.publish("bomba/modo", "AUTO_OFF");
   console.log("Modo automático desactivado");
+  modoAutomaticoUI = false;
 }
   
   
@@ -406,7 +417,3 @@ function enviarHorario() {
   
 
 </script>
-
-</body>
-</html>
-
