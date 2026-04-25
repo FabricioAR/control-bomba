@@ -185,6 +185,23 @@ canvas {
 .buttons button:hover {
   background: rgba(255,255,255,0.15);
 }
+
+/* 🔹 BOTONES ACTIVOS */
+.active-btn {
+  background: #29b6f6 !important;
+  box-shadow: 0 0 10px #29b6f6;
+}
+
+/* 🔹 INPUT ACTIVO */
+.input-active {
+  background: rgba(41, 182, 246, 0.2) !important;
+  box-shadow: 0 0 8px #29b6f6;
+}
+
+
+
+
+  
   
 </style>
 
@@ -224,12 +241,12 @@ canvas {
   </div>
 
   <div class="buttons">
-    <button class="on" onclick="encender()">Encender</button>
-    <button class="off" onclick="apagar()">Apagar</button>
+    <button id="onBtn" class="on" onclick="encender()">
+    <button id="autoOffBtn" onclick="desactivarAuto()">
   </div>
 
 <div class="buttons">
-  <button onclick="activarAuto()">Auto ON</button>
+  <button id="autoOnBtn" onclick="activarAuto()">
   <button onclick="desactivarAuto()">Auto OFF</button>
 </div>
   
@@ -238,12 +255,12 @@ canvas {
 
   <div class="input-group">
     <label>Hora Encendido</label>
-    <input type="time" id="horaOn">
+    <input type="time" id="horaOn" onfocus="activarInput(this)" onblur="desactivarInput(this)">
   </div>
 
   <div class="input-group">
     <label>Hora Apagado</label>
-    <input type="time" id="horaOff">
+    <input type="time" id="horaOff" onfocus="activarInput(this)" onblur="desactivarInput(this)">
   </div>
 </div>
 
@@ -256,6 +273,8 @@ canvas {
 
 </div>
 
+
+      
 <script>
 
 const options = {
@@ -417,26 +436,28 @@ function encender() {
 
   pingTime = Date.now();
   client.publish("bomba/control", "ON");
-
+  setActiveButton("onBtn");
 }
 
 function apagar() {
 
   pingTime = Date.now();
   client.publish("bomba/control", "OFF");
-
+  setActiveButton("offBtn");
 }
 
 function activarAuto() {
   client.publish("bomba/modo", "AUTO_ON");
   console.log("Modo automático activado");
   modoAutomaticoUI = true;
+  setActiveButton("autoOnBtn");
 }
 
 function desactivarAuto() {
   client.publish("bomba/modo", "AUTO_OFF");
   console.log("Modo automático desactivado");
   modoAutomaticoUI = false;
+  setActiveButton("autoOffBtn");
 }
   
   
@@ -483,11 +504,33 @@ function enviarHorario() {
   console.log("Horario enviado:", json);
 }
 
+
+  
+// Para cambiar el aspecto de los botones cuando se aprietan.
+function setActiveButton(id) {
+  const buttons = ["onBtn", "offBtn", "autoOnBtn", "autoOffBtn"];
+  buttons.forEach(btnId => {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.remove("active-btn");
+  });
+  const active = document.getElementById(id);
+  if (active) active.classList.add("active-btn");
+}
+
+
+
+  
+
+// Para cambiar el aspecto de los botones cuando se aprietan.
+  function activarInput(el) {
+  el.classList.add("input-active");
+}
+function desactivarInput(el) {
+  el.classList.remove("input-active");
+}
   
 
   
-  
-
 </script>
 
 </body>
