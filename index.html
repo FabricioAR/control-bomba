@@ -531,20 +531,30 @@ localStorage.setItem("horaOff", horaOff);
 
 function setActiveButton(id) {
 
-  const onBtn = document.getElementById("onBtn");
-  const offBtn = document.getElementById("offBtn");
+  // 🔵 GRUPO MANUAL (ON / OFF)
+  if (id === "onBtn" || id === "offBtn") {
 
-  // Quitar ambos
-  if (onBtn) onBtn.classList.remove("active-btn");
-  if (offBtn) offBtn.classList.remove("active-btn");
+    const onBtn = document.getElementById("onBtn");
+    const offBtn = document.getElementById("offBtn");
 
-  // Activar el correcto
-  if (id === "onBtn" && onBtn) {
-    onBtn.classList.add("active-btn");
+    if (onBtn) onBtn.classList.remove("active-btn");
+    if (offBtn) offBtn.classList.remove("active-btn");
+
+    const active = document.getElementById(id);
+    if (active) active.classList.add("active-btn");
   }
 
-  if (id === "offBtn" && offBtn) {
-    offBtn.classList.add("active-btn");
+  // 🟢 GRUPO AUTO (AUTO ON / OFF)
+  if (id === "autoOnBtn" || id === "autoOffBtn") {
+
+    const autoOn = document.getElementById("autoOnBtn");
+    const autoOff = document.getElementById("autoOffBtn");
+
+    if (autoOn) autoOn.classList.remove("active-btn");
+    if (autoOff) autoOff.classList.remove("active-btn");
+
+    const active = document.getElementById(id);
+    if (active) active.classList.add("active-btn");
   }
 }
 
