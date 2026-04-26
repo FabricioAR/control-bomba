@@ -216,6 +216,13 @@ canvas {
 }
 
 
+/* 🔘 BOTÓN INACTIVO (GRIS) */
+button {
+  background: #555;
+  color: white;
+}
+
+
   
 
 </style>
@@ -524,15 +531,21 @@ localStorage.setItem("horaOff", horaOff);
 
 function setActiveButton(id) {
 
-  const buttons = ["onBtn", "offBtn", "autoOnBtn", "autoOffBtn"];
+  const onBtn = document.getElementById("onBtn");
+  const offBtn = document.getElementById("offBtn");
 
-  buttons.forEach(btnId => {
-    const btn = document.getElementById(btnId);
-    if (btn) btn.classList.remove("active-btn");
-  });
+  // Quitar ambos
+  if (onBtn) onBtn.classList.remove("active-btn");
+  if (offBtn) offBtn.classList.remove("active-btn");
 
-  const active = document.getElementById(id);
-  if (active) active.classList.add("active-btn");
+  // Activar el correcto
+  if (id === "onBtn" && onBtn) {
+    onBtn.classList.add("active-btn");
+  }
+
+  if (id === "offBtn" && offBtn) {
+    offBtn.classList.add("active-btn");
+  }
 }
 
 
