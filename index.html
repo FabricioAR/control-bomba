@@ -207,6 +207,17 @@ canvas {
 
 
 
+/* 🔵 BOTÓN ACTIVO (AZUL FUERTE) */
+.active-btn {
+  background: #2196f3 !important;   /* azul fuerte */
+  color: white !important;
+  box-shadow: 0 0 15px #2196f3 !important;
+  transform: scale(1.05);
+}
+
+
+  
+
 </style>
 
   
@@ -245,13 +256,13 @@ canvas {
   </div>
 
   <div class="buttons">
-    <button id="onBtn" class="on" onclick="encender()">
-    <button id="offBtn" class="off" onclick="apagar()">
+    <button id="onBtn" class="on" onclick="encender()">Encender</button>
+    <button id="offBtn" class="off" onclick="apagar()">Apagar</button>
   </div>
 
 <div class="buttons">
-  <button id="autoOnBtn" onclick="activarAuto()">
-  <button id="autoOffBtn" onclick="desactivarAuto()">
+<button id="autoOnBtn" onclick="activarAuto()">Auto ON</button>
+<button id="autoOffBtn" onclick="desactivarAuto()">Auto OFF</button>
 </div>
   
   <!-- AQUÍ VA EL HORARIO -->
@@ -511,12 +522,15 @@ localStorage.setItem("horaOff", horaOff);
 }
 
 
-  function setActiveButton(id) {
+function setActiveButton(id) {
+
   const buttons = ["onBtn", "offBtn", "autoOnBtn", "autoOffBtn"];
+
   buttons.forEach(btnId => {
     const btn = document.getElementById(btnId);
     if (btn) btn.classList.remove("active-btn");
   });
+
   const active = document.getElementById(id);
   if (active) active.classList.add("active-btn");
 }
