@@ -223,7 +223,16 @@ button {
 }
 
 
-  
+
+/* 🔒 BOTONES DESHABILITADOS */
+.disabled-btn {
+  opacity: 0.4;
+  pointer-events: none;
+  box-shadow: none !important;
+}
+
+
+
 
 </style>
 
@@ -329,6 +338,34 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+// 🔄 Restaurar modo AUTO / MANUAL
+let modoGuardado = localStorage.getItem("modoAutomatico");
+
+if (modoGuardado !== null) {
+  modoAutomaticoUI = (modoGuardado === "true");
+}
+
+// 🔄 Restaurar estado ON/OFF
+let estadoGuardado = localStorage.getItem("estadoManual");
+
+// Aplicar UI
+if (modoAutomaticoUI) {
+  setActiveButton("autoOnBtn");
+} else {
+  setActiveButton("autoOffBtn");
+
+  if (estadoGuardado === "on") {
+    setActiveButton("onBtn");
+  } else if (estadoGuardado === "off") {
+    setActiveButton("offBtn");
+  }
+}
+
+// Aplicar bloqueo visual
+actualizarModoUI();
+
+  
 
 // 🔄 Para restaurar horario guardado y que aparezca al ingresar a la app
 const horaOnGuardada = localStorage.getItem("horaOn");
@@ -461,6 +498,7 @@ function encender() {
   pingTime = Date.now();
   client.publish("bomba/control", "ON");
   setActiveButton("onBtn");
+  localStorage.setItem("estadoManual", "on");
 }
 
 function apagar() {
@@ -468,22 +506,28 @@ function apagar() {
   pingTime = Date.now();
   client.publish("bomba/control", "OFF");
   setActiveButton("offBtn");
+  localStorage.setItem("estadoManual", "off");
 }
 
 function activarAuto() {
   client.publish("bomba/modo", "AUTO_ON");
-  console.log("Modo automático activado");
   modoAutomaticoUI = true;
+
   setActiveButton("autoOnBtn");
+  actualizarModoUI();
+
+  localStorage.setItem("modoAutomatico", "true");
 }
 
 function desactivarAuto() {
   client.publish("bomba/modo", "AUTO_OFF");
-  console.log("Modo automático desactivado");
   modoAutomaticoUI = false;
+
   setActiveButton("autoOffBtn");
+  actualizarModoUI();
+
+  localStorage.setItem("modoAutomatico", "false");
 }
-  
   
 function actualizarBarrasRSSI(rssi){
 
@@ -568,6 +612,27 @@ function desactivarInput(el) {
   el.classList.remove("input-active");
 }
 
+
+
+function actualizarModoUI() {
+
+  const onBtn = document.getElementById("onBtn");
+  const offBtn = document.getElementById("offBtn");
+
+  if (modoAutomaticoUI) {
+    // 🔒 AUTO → deshabilitar ON/OFF
+    if (onBtn) onBtn.classList.add("disabled-btn");
+    if (offBtn) offBtn.classList.add("disabled-btn");
+  } else {
+    // 🔓 MANUAL → habilitar ON/OFF
+    if (onBtn) onBtn.classList.remove("disabled-btn");
+    if (offBtn) offBtn.classList.remove("disabled-btn");
+  }
+
+}
+
+
+  
   
 
 </script>
