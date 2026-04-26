@@ -130,6 +130,73 @@ canvas {
   letter-spacing:2px;
   color:#00ff88;
 }
+
+
+
+
+
+
+
+/* 🔹 INPUTS */
+.inputs-row {
+  gap: 10px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.input-group label {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 3px;
+}
+
+.input-group input {
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 14px;
+}
+
+/* 🔹 BOTÓN GUARDAR */
+.save-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #00c853, #00e676);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.save-btn:hover {
+  transform: scale(1.05);
+}
+
+/* 🔹 BOTONES AUTO */
+.buttons button {
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border-radius: 12px;
+}
+
+.buttons button:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+
+
+
+
+  
   
   
 </style>
@@ -180,19 +247,23 @@ canvas {
 </div>
   
   <!-- AQUÍ VA EL HORARIO -->
-  <div class="row">
-  <div>
-    <div class="subtext">Hora Encendido</div>
+<div class="row inputs-row">
+
+  <div class="input-group">
+    <label>Hora Encendido</label>
     <input type="time" id="horaOn">
   </div>
 
-  <div>
-    <div class="subtext">Hora Apagado</div>
+  <div class="input-group">
+    <label>Hora Apagado</label>
     <input type="time" id="horaOff">
   </div>
+
 </div>
 
-<button onclick="enviarHorario()">Guardar Horario</button>
+<button class="save-btn" onclick="enviarHorario()">
+  💾 Guardar Horario
+</button>
 
  <!-- GRÁFICA --> 
   <canvas id="estadoChart" height="120"></canvas>
