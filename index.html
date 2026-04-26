@@ -232,6 +232,12 @@ button {
 }
 
 
+  /* 🔵 INPUT CON VALOR */
+.input-filled {
+  background: rgba(41, 182, 246, 0.25) !important;
+  box-shadow: 0 0 10px #29b6f6;
+}
+
 
 
 </style>
@@ -286,12 +292,12 @@ button {
 
   <div class="input-group">
     <label>Hora Encendido</label>
-    <input type="time" id="horaOn" onfocus="activarInput(this)" onblur="desactivarInput(this)">
+    <input type="time" id="horaOn" onchange="verificarInputHorario()">
   </div>
 
   <div class="input-group">
     <label>Hora Apagado</label>
-    <input type="time" id="horaOff" onfocus="activarInput(this)" onblur="desactivarInput(this)">
+   <input type="time" id="horaOff" onchange="verificarInputHorario()">
   </div>
 
 </div>
@@ -373,6 +379,7 @@ const horaOffGuardada = localStorage.getItem("horaOff");
 
 if (horaOnGuardada) {
   document.getElementById("horaOn").value = horaOnGuardada;
+  verificarInputHorario();
 }
 
 if (horaOffGuardada) {
@@ -556,6 +563,7 @@ function enviarHorario() {
   // 💾 Guardar horas en el navegador para que al abrir la app de nuevo se mantegan las horas de encendido. 
 localStorage.setItem("horaOn", horaOn);
 localStorage.setItem("horaOff", horaOff);
+verificarInputHorario();
   
   if (!horaOn || !horaOff) {
     alert("Seleccione ambas horas");
@@ -628,7 +636,27 @@ function actualizarModoUI() {
     if (onBtn) onBtn.classList.remove("disabled-btn");
     if (offBtn) offBtn.classList.remove("disabled-btn");
   }
+}
 
+
+  
+
+  function verificarInputHorario() {
+
+  const horaOn = document.getElementById("horaOn");
+  const horaOff = document.getElementById("horaOff");
+
+  if (horaOn && horaOn.value) {
+    horaOn.classList.add("input-filled");
+  } else if (horaOn) {
+    horaOn.classList.remove("input-filled");
+  }
+
+  if (horaOff && horaOff.value) {
+    horaOff.classList.add("input-filled");
+  } else if (horaOff) {
+    horaOff.classList.remove("input-filled");
+  }
 }
 
 
