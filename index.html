@@ -379,13 +379,12 @@ const horaOffGuardada = localStorage.getItem("horaOff");
 
 if (horaOnGuardada) {
   document.getElementById("horaOn").value = horaOnGuardada;
-  verificarInputHorario();
 }
 
 if (horaOffGuardada) {
   document.getElementById("horaOff").value = horaOffGuardada;
 }
-
+setTimeout(verificarInputHorario, 50);
   
 
 function updateOnTime() {
