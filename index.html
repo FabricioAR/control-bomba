@@ -384,7 +384,10 @@ if (horaOnGuardada) {
 if (horaOffGuardada) {
   document.getElementById("horaOff").value = horaOffGuardada;
 }
-setTimeout(verificarInputHorario, 50);
+  
+window.addEventListener("load", () => {  
+  verificarInputHorario();  
+});
   
 
 function updateOnTime() {
