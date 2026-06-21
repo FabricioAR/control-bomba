@@ -239,7 +239,15 @@ button {
 }
 
 
+  
+.rango-extra{
+  margin-top:10px;
+}
+.rango-extra .inputs-row{
+  margin-top:5px;
+}
 
+  
 </style>
 
   
@@ -301,6 +309,14 @@ button {
   </div>
 
 </div>
+
+
+  <div id="rangosExtras"></div>
+
+<button class="save-btn" onclick="agregarRango()">
+  ➕ Agregar Rango
+</button>
+  
 
 <button class="save-btn" onclick="enviarHorario()">
   💾 Guardar Horario
@@ -661,6 +677,48 @@ function actualizarModoUI() {
   }
 }
 
+
+  
+let totalRangos = 1;
+
+function agregarRango() {
+
+  if(totalRangos >= 5){
+    alert("Máximo 5 rangos");
+    return;
+  }
+
+  totalRangos++;
+
+  const contenedor =
+    document.getElementById("rangosExtras");
+
+  const nuevo =
+    document.createElement("div");
+
+  nuevo.className = "rango-extra";
+
+  nuevo.innerHTML = `
+
+    <div class="row inputs-row">
+
+      <div class="input-group">
+        <label>Hora Encendido ${totalRangos}</label>
+        <input type="time" class="horaOnExtra">
+      </div>
+
+      <div class="input-group">
+        <label>Hora Apagado ${totalRangos}</label>
+        <input type="time" class="horaOffExtra">
+      </div>
+
+    </div>
+
+  `;
+
+  contenedor.appendChild(nuevo);
+
+}
 
   
   
