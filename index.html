@@ -627,6 +627,7 @@ function enviarHorario() {
 
   console.log("Horario enviado:");
   console.log(json);
+  alert(json);
 
   client.publish("bomba/horario", json);
 
