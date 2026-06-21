@@ -239,25 +239,6 @@ button {
 }
 
 
-.rango{
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.05);
-}
-
-.rango input{
-  width:45%;
-}
-
-#btnAgregarRango{
-  width:100%;
-  margin-top:10px;
-  background:#2196f3;
-  color:white;
-}
-
-
 
 </style>
 
@@ -307,26 +288,19 @@ button {
 </div>
   
   <!-- AQUÍ VA EL HORARIO -->
-<div id="contenedorRangos">
+<div class="row inputs-row">
 
-  <div class="rango">
+  <div class="input-group">
+    <label>Hora Encendido</label>
+    <input type="time" id="horaOn" onchange="verificarInputHorario()">
+  </div>
 
-    <div class="subtext">Rango 1</div>
-
-    <div class="row">
-
-      <input type="time" class="horaOn">
-      <input type="time" class="horaOff">
-
-    </div>
-
+  <div class="input-group">
+    <label>Hora Apagado</label>
+   <input type="time" id="horaOff" onchange="verificarInputHorario()">
   </div>
 
 </div>
-
-<button id="btnAgregarRango" onclick="agregarRango()">
-  ➕ Agregar Rango
-</button>
 
 <button class="save-btn" onclick="enviarHorario()">
   💾 Guardar Horario
@@ -666,7 +640,9 @@ function actualizarModoUI() {
   }
 }
 
+
   
+
   function verificarInputHorario() {
 
   const horaOn = document.getElementById("horaOn");
@@ -684,39 +660,3 @@ function actualizarModoUI() {
     horaOff.classList.remove("input-filled");
   }
 }
-
-
-  
-let contadorRangos = 1;
-
-function agregarRango(){
-
-  contadorRangos++;
-
-  const contenedor =
-    document.getElementById("contenedorRangos");
-
-  const nuevo =
-    document.createElement("div");
-
-  nuevo.className = "rango";
-
-  nuevo.innerHTML = `
-    <div class="subtext">
-      Rango ${contadorRangos}
-    </div>
-
-    <div class="row">
-      <input type="time" class="horaOn">
-      <input type="time" class="horaOff">
-    </div>
-  `;
-
-  contenedor.appendChild(nuevo);
-
-}
-  
-  
-  
-
-</script>
