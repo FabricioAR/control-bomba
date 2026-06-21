@@ -575,27 +575,61 @@ function actualizarBarrasRSSI(rssi){
 
   
 function enviarHorario() {
+
+  const rangos = [];
+
+  // RANGO 1
   const horaOn = document.getElementById("horaOn").value;
   const horaOff = document.getElementById("horaOff").value;
 
-  // 💾 Guardar horas en el navegador para que al abrir la app de nuevo se mantegan las horas de encendido. 
-localStorage.setItem("horaOn", horaOn);
-localStorage.setItem("horaOff", horaOff);
-verificarInputHorario();
-  
-  if (!horaOn || !horaOff) {
-    alert("Seleccione ambas horas");
+  if (horaOn && horaOff) {
+
+    rangos.push({
+      on: horaOn,
+      off: horaOff
+    });
+
+  }
+
+  // RANGOS EXTRA
+  const horasOn =
+    document.querySelectorAll(".horaOnExtra");
+
+  const horasOff =
+    document.querySelectorAll(".horaOffExtra");
+
+  for(let i=0; i<horasOn.length; i++){
+
+    if(
+      horasOn[i].value &&
+      horasOff[i].value
+    ){
+
+      rangos.push({
+        on: horasOn[i].value,
+        off: horasOff[i].value
+      });
+
+    }
+
+  }
+
+  if(rangos.length === 0){
+    alert("Debe ingresar al menos un horario");
     return;
   }
-  
+
   const data = {
-    on: horaOn,
-    off: horaOff
+    rangos: rangos
   };
-  
+
   const json = JSON.stringify(data);
+
+  console.log("Horario enviado:");
+  console.log(json);
+
   client.publish("bomba/horario", json);
-  console.log("Horario enviado:", json);
+
 }
 
 
