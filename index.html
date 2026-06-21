@@ -659,8 +659,11 @@ function actualizarModoUI() {
 
   
 
+
+  
   function verificarInputHorario() {
 
+  // RANGO 1
   const horaOn = document.getElementById("horaOn");
   const horaOff = document.getElementById("horaOff");
 
@@ -675,8 +678,29 @@ function actualizarModoUI() {
   } else if (horaOff) {
     horaOff.classList.remove("input-filled");
   }
-}
 
+  // RANGOS EXTRA
+  document.querySelectorAll(".horaOnExtra").forEach(input => {
+
+    if (input.value) {
+      input.classList.add("input-filled");
+    } else {
+      input.classList.remove("input-filled");
+    }
+
+  });
+
+  document.querySelectorAll(".horaOffExtra").forEach(input => {
+
+    if (input.value) {
+      input.classList.add("input-filled");
+    } else {
+      input.classList.remove("input-filled");
+    }
+
+  });
+
+}
 
   
 let totalRangos = 1;
@@ -704,12 +728,16 @@ function agregarRango() {
 
       <div class="input-group">
         <label>Hora Encendido ${totalRangos}</label>
-        <input type="time" class="horaOnExtra">
+       <input type="time"
+       class="horaOnExtra"
+       onchange="verificarInputHorario()">
       </div>
 
       <div class="input-group">
         <label>Hora Apagado ${totalRangos}</label>
-        <input type="time" class="horaOffExtra">
+        <input type="time"
+       class="horaOffExtra"
+       onchange="verificarInputHorario()">
       </div>
 
     </div>
