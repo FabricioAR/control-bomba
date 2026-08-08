@@ -574,6 +574,8 @@ function actualizarBarrasRSSI(rssi){
 }
 
   
+
+
 function enviarHorario() {
 
   const rangos = [];
@@ -598,12 +600,12 @@ function enviarHorario() {
   const horasOff =
     document.querySelectorAll(".horaOffExtra");
 
-  for(let i=0; i<horasOn.length; i++){
+  for (let i = 0; i < horasOn.length; i++) {
 
-    if(
+    if (
       horasOn[i].value &&
       horasOff[i].value
-    ){
+    ) {
 
       rangos.push({
         on: horasOn[i].value,
@@ -614,7 +616,7 @@ function enviarHorario() {
 
   }
 
-  if(rangos.length === 0){
+  if (rangos.length === 0) {
     alert("Debe ingresar al menos un horario");
     return;
   }
@@ -625,13 +627,16 @@ function enviarHorario() {
 
   const json = JSON.stringify(data);
 
-  console.log("Horario enviado:");
+  // 💾 GUARDAR TODOS LOS RANGOS EN EL NAVEGADOR
+  localStorage.setItem("horariosBomba", json);
+
+  console.log("Horario guardado:");
   console.log(json);
-  alert(json);
 
   client.publish("bomba/horario", json);
 
 }
+  
 
 
 function setActiveButton(id) {
@@ -758,31 +763,98 @@ function agregarRango() {
   nuevo.className = "rango-extra";
 
   nuevo.innerHTML = `
-
     <div class="row inputs-row">
 
       <div class="input-group">
         <label>Hora Encendido ${totalRangos}</label>
-       <input type="time"
-       class="horaOnExtra"
-       onchange="verificarInputHorario()">
+        <input type="time"
+          class="horaOnExtra"
+          onchange="verificarInputHorario()">
       </div>
 
       <div class="input-group">
         <label>Hora Apagado ${totalRangos}</label>
         <input type="time"
-       class="horaOffExtra"
-       onchange="verificarInputHorario()">
+          class="horaOffExtra"
+          onchange="verificarInputHorario()">
       </div>
 
     </div>
-
   `;
 
   contenedor.appendChild(nuevo);
-
 }
 
+
+// ⬇️ PEGAR AQUÍ
+function cargarHorariosGuardados() {
+
+  const horariosGuardados =
+    localStorage.getItem("horariosBomba");
+
+  if (!horariosGuardados) {
+    return;
+  }
+
+  try {
+
+    const data =
+      JSON.parse(horariosGuardados);
+
+    if (!data.rangos || data.rangos.length === 0) {
+      return;
+    }
+
+    const contenedor =
+      document.getElementById("rangosExtras");
+
+    contenedor.innerHTML = "";
+
+    totalRangos = 1;
+
+    // RANGO 1
+    if (data.rangos[0]) {
+
+      document.getElementById("horaOn").value =
+        data.rangos[0].on;
+
+      document.getElementById("horaOff").value =
+        data.rangos[0].off;
+    }
+
+    // RANGOS 2, 3, 4 y 5
+    for (let i = 1; i < data.rangos.length; i++) {
+
+      agregarRango();
+
+      const horasOn =
+        document.querySelectorAll(".horaOnExtra");
+
+      const horasOff =
+        document.querySelectorAll(".horaOffExtra");
+
+      const indice = horasOn.length - 1;
+
+      horasOn[indice].value =
+        data.rangos[i].on;
+
+      horasOff[indice].value =
+        data.rangos[i].off;
+    }
+
+    verificarInputHorario();
+
+    console.log("Horarios restaurados:");
+    console.log(data);
+
+  } catch (error) {
+
+    console.error(
+      "Error al cargar horarios:",
+      error
+    );
+  }
+}
   
   
 
