@@ -615,93 +615,18 @@ if (rangos.length === 0) {
 }
 
 
-// =====================================================
-// VALIDACIÓN DE HORARIOS
-// =====================================================
-
-for (let i = 0; i < rangos.length; i++) {
-
-  const inicio =
-    rangos[i].on.split(":");
-
-  const fin =
-    rangos[i].off.split(":");
-
-  const minutosInicio =
-    parseInt(inicio[0]) * 60 +
-    parseInt(inicio[1]);
-
-  const minutosFin =
-    parseInt(fin[0]) * 60 +
-    parseInt(fin[1]);
-
-
-  // 1️⃣ ENCENDIDO DEBE SER MENOR QUE APAGADO
-
-  if (minutosInicio >= minutosFin) {
-
-    alert(
-      `⚠️ Error en el Rango ${i + 1}:\n\n` +
-      `La hora de encendido debe ser menor ` +
-      `que la hora de apagado.`
-    );
-
-    return;
-  }
-
-
-  // 2️⃣ COMPROBAR TRASLAPAMIENTO CON EL RANGO ANTERIOR
-
-  if (i > 0) {
-
-    const finAnterior =
-      rangos[i - 1].off.split(":");
-
-    const minutosFinAnterior =
-      parseInt(finAnterior[0]) * 60 +
-      parseInt(finAnterior[1]);
-
-
-    if (minutosInicio < minutosFinAnterior) {
-
-      alert(
-        `⚠️ Los rangos se traslapan.\n\n` +
-        `El Rango ${i} termina a las ` +
-        `${rangos[i - 1].off}, pero el ` +
-        `Rango ${i + 1} comienza a las ` +
-        `${rangos[i].on}.\n\n` +
-        `El Rango ${i + 1} debe comenzar ` +
-        `a las ${rangos[i - 1].off} o después.`
-      );
-
-      return;
-    }
-  }
-}
-
-
-// =====================================================
-// SI TODO ESTÁ CORRECTO, GUARDAR Y ENVIAR
-// =====================================================
-
 const data = {
   rangos: rangos
 };
 
 const json = JSON.stringify(data);
 
-console.log("Horario guardado:");
-console.log(json);
-
-// 💾 Guardar en el navegador
 localStorage.setItem("horariosBomba", json);
 
-// 📡 Enviar al ESP32
 client.publish("bomba/horario", json);
 
-alert("✅ Horarios guardados correctamente.");
-  
 
+  
 
 function setActiveButton(id) {
 
