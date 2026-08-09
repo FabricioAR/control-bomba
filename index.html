@@ -389,20 +389,13 @@ actualizarModoUI();
 
   
 
-// 🔄 Para restaurar horario guardado y que aparezca al ingresar a la app
-const horaOnGuardada = localStorage.getItem("horaOn");
-const horaOffGuardada = localStorage.getItem("horaOff");
+// 🔄 Restaurar todos los horarios al abrir la aplicación
+window.addEventListener("load", () => {
 
-if (horaOnGuardada) {
-  document.getElementById("horaOn").value = horaOnGuardada;
-}
+  cargarHorariosGuardados();
 
-if (horaOffGuardada) {
-  document.getElementById("horaOff").value = horaOffGuardada;
-}
-  
-window.addEventListener("load", () => {  
-  verificarInputHorario();  
+  verificarInputHorario();
+
 });
   
 
